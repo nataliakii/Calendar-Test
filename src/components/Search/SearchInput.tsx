@@ -114,14 +114,14 @@ const StyledInput = styled.input`
   transition: border-color 0.2s;
 
   &:focus {
-    border-color: #007bff;
+    border-color: #1c6697;
     box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
   }
 `;
 
 const SearchButton = styled.button`
   padding: 8px 16px;
-  background-color: #007bff;
+  background-color: #1c6697;
   color: white;
   border: none;
   border-radius: 4px;
@@ -129,7 +129,7 @@ const SearchButton = styled.button`
   cursor: pointer;
 
   &:hover {
-    background-color: #0056b3;
+    background-color: #134566;
   }
 
   &:disabled {

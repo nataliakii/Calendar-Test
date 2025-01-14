@@ -17,7 +17,6 @@ const DeleteAllButton: React.FC = () => {
 export default DeleteAllButton;
 
 const Button = styled.button`
-  position: absolute;
   right: 2rem;
   background-color: #ff5555;
   color: white;

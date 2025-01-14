@@ -24,7 +24,7 @@ const Cell: React.FC<CellProps> = ({
   const holidays = filterHolidaysByDate(date, state);
 
   // Setup droppable area for the cell
-  const { setNodeRef, isOver } = useDroppable({
+  const { setNodeRef } = useDroppable({
     id: `cell-${date.format("YYYY-MM-DD")}`,
     data: {
       date,

@@ -11,6 +11,9 @@ const App: React.FC = () => {
     <AppProvider>
       <AppContainer>
         <Header>
+          <LogoContainer>
+            <Logo src="/favicon.png" alt="Logo" />
+          </LogoContainer>
           <CenteredContainer>
             <SearchInput />
           </CenteredContainer>
@@ -30,8 +33,7 @@ const Header = styled.header`
   min-height: 7vh;
   display: flex;
   align-items: center;
-  justify-content: center;
-  position: relative;
+  justify-content: space-between;
   padding: 0 1rem;
   font-size: calc(10px + 2vmin);
   color: white;
@@ -58,5 +60,20 @@ const AppContainer = styled.div`
     &:hover {
       text-decoration: underline;
     }
+  }
+`;
+
+const LogoContainer = styled.div`
+  display: flex;
+  align-items: start;
+`;
+
+const Logo = styled.img`
+  height: 40px;
+  width: auto;
+  margin-right: 1rem;
+
+  @media (max-width: 768px) {
+    height: 30px;
   }
 `;

@@ -163,7 +163,7 @@ const StyledList = styled.ol`
 `;
 
 const StyledButton = styled.button`
-  background-color: #007bff;
+  background-color: #1c6697;
   margin-top: 2px;
   margin-bottom: 5px;
   color: white;
@@ -176,12 +176,12 @@ const StyledButton = styled.button`
   transition: background-color 0.3s ease, transform 0.2s ease;
 
   &:hover {
-    background-color: #0056b3;
+    background-color: #134566;
     transform: scale(1.05);
   }
 
   &:active {
-    background-color: #003d80;
+    background-color: #134566;
     transform: scale(0.95);
   }
 

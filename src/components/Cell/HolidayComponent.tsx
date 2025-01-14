@@ -1,6 +1,7 @@
 import { ReactElement } from "react";
-import { Event, Holiday } from "../types/types";
 import styled from "styled-components";
+
+import { Holiday } from "../../types/types";
 
 interface SliderProps {
   holidays: Holiday[];

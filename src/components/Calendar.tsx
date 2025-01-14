@@ -1,16 +1,5 @@
 import React, { createContext, useState, useMemo } from "react";
 
-import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
-import { useAppContext } from "../Context";
-import {
-  AppState,
-  Event,
-  DragDropContextType,
-  DraggedEvent,
-} from "../types/types";
-import { filterEventsByDate, getCalendarDays } from "../utils/helperFunctions";
-import Cell from "./Cell";
-
 // library imports
 import {
   DndContext,
@@ -21,46 +10,22 @@ import {
   PointerSensor,
   KeyboardSensor,
 } from "@dnd-kit/core";
-import {
-  SortableContext,
-  sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
-  arrayMove,
-} from "@dnd-kit/sortable";
+import { sortableKeyboardCoordinates, arrayMove } from "@dnd-kit/sortable";
 import styled from "styled-components";
 import dayjs from "dayjs";
 import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
+import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
 dayjs.extend(isSameOrBefore);
 
-const DraggingEventOverlay: React.FC<{
-  id: string; // ID of the event being dragged
-  events: Event[]; // List of all events
-  isDraggingBetweenCells: boolean; // Whether the event is being dragged between calendar cells
-}> = ({ id, events, isDraggingBetweenCells }) => {
-  // Find the active event based on the ID passed to the component
-  const activeEvent = events.find((event) => event.id === id);
-
-  // If no active event is found, return null to render nothing
-  if (!activeEvent) return null;
-
-  return (
-    <Wrapper
-      style={{
-        // Scale the overlay to indicate the event is being dragged between cells
-        transform: isDraggingBetweenCells ? "scale(1.05)" : "scale(1)",
-      }}
-    >
-      {/* Display the count (e.g., the order number or sequence of the event) */}
-      <div>{activeEvent.count}</div>
-      {/* Display the title of the event being dragged */}
-      <div>{activeEvent.title}</div>
-    </Wrapper>
-  );
-};
+//imports from project
+import { useAppContext } from "../Context";
+import { getCalendarDays } from "../utils/helperFunctions";
+import Cell from "./Cell/Cell";
+import DraggingEventOverlay from "./DraggingEventOverlay";
 
 const Calendar: React.FC = () => {
   // Accessing global state and updater function from the context
-  const { state, setState } = useAppContext();
+  const { state, setState, setNewEvents, deleteAll } = useAppContext();
 
   // Getting the current date using dayjs
   const today = dayjs();
@@ -89,7 +54,9 @@ const Calendar: React.FC = () => {
 
   // State to track the currently active event (for drag-and-drop)
   const [activeId, setActiveId] = useState<string | null>(null);
-
+  const [dragType, setDragType] = useState<"internal" | "external" | null>(
+    null
+  );
   // State to track whether an event is being dragged between cells
   const [isDraggingBetweenCells, setIsDraggingBetweenCells] = useState(false);
 
@@ -97,55 +64,88 @@ const Calendar: React.FC = () => {
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        delay: 100, // Delay to differentiate between click and drag
-        tolerance: 5, // Tolerance for drag movement
+        delay: 100,
+        tolerance: 5,
       },
     }),
     useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates, // Keyboard sensor configuration
+      coordinateGetter: sortableKeyboardCoordinates,
     })
   );
 
-  // Handler for when the drag starts
   const handleDragStart = (event) => {
     const { active } = event;
-    console.log("Drag started:", active.id);
-    setActiveId(active.id); // Store the ID of the dragged event
+    setActiveId(active.id);
+
+    // Determine if this is an internal cell drag or external calendar drag
+    const draggedEvent = state.events.find((e) => e.id === active.id);
+    const isDraggingFromCell = active.data.current?.type === "event";
+
+    setDragType(isDraggingFromCell ? "internal" : "external");
+    console.log("Drag started:", {
+      id: active.id,
+      type: isDraggingFromCell ? "internal" : "external",
+    });
   };
 
-  // Handler for when the drag is over a potential drop target
   const handleDragOver = (event) => {
     const { over } = event;
-    setIsDraggingBetweenCells(over?.data.current?.type === "cell"); // Check if over a calendar cell
+    setIsDraggingBetweenCells(over?.data.current?.type === "cell");
   };
 
-  // Handler for when the drag ends (drop event)
   const handleDragEnd = (event) => {
     const { active, over } = event;
 
-    setActiveId(null); // Reset the active ID after drag ends
-    setIsDraggingBetweenCells(false); // Reset the dragging state
+    setActiveId(null);
+    setIsDraggingBetweenCells(false);
+    setDragType(null);
 
-    if (!over) return; // If no drop target, do nothing
+    if (!over) return;
 
     const activeEvent = state.events.find((e) => e.id === active.id);
     if (!activeEvent) return;
 
-    // Handle cross-cell drops (moving event to a new date)
+    // Handle dropping onto a new cell
     if (over.data.current?.type === "cell") {
+      // deleteAll();
+      console.log(" ended and dragging is between cells");
       const newDate = over.data.current.date.format("YYYY-MM-DD");
+      const oldDate = activeEvent.date;
 
-      // Update the global state to move the event to the new date
-      setState((prev) => ({
-        ...prev,
-        events: prev.events.map(
-          (e) => (e.id === active.id ? { ...e, date: newDate } : e) // Update the event date
-        ),
-      }));
+      // Get all events from the old date and new date
+      const oldDateEvents = state.events.filter((e) => e.date === oldDate);
+      const newDateEvents = state.events.filter((e) => e.date === newDate);
+
+      // Remove the active event from old date events
+      const remainingOldDateEvents = oldDateEvents
+        .filter((e) => e.id !== active.id)
+        .map((e, index) => ({ ...e, count: index + 1 }));
+
+      // Add the active event to new date events
+      const updatedNewDateEvents = [
+        { ...activeEvent, date: newDate, count: 1 },
+        ...newDateEvents.map((e) => ({ ...e, count: e.count + 1 })),
+      ];
+
+      // Update global state
+      setState((prev) => {
+        const newState = {
+          ...prev,
+          events: [
+            ...prev.events.filter(
+              (e) => e.date !== oldDate && e.date !== newDate
+            ),
+            ...remainingOldDateEvents,
+            ...updatedNewDateEvents,
+          ],
+        };
+        setNewEvents(newState.events);
+        return newState;
+      });
       return;
     }
 
-    // Handle reordering events within the same cell
+    // Handle reordering within the same cell
     if (over.data.current?.type === "event") {
       const overEvent = state.events.find((e) => e.id === over.id);
       if (!overEvent || activeEvent.date !== overEvent.date) return;
@@ -156,21 +156,24 @@ const Calendar: React.FC = () => {
       const oldIndex = dateEvents.findIndex((e) => e.id === active.id);
       const newIndex = dateEvents.findIndex((e) => e.id === over.id);
 
-      // Reorder events based on drag-and-drop
-      const reorderedEvents = arrayMove(dateEvents, oldIndex, newIndex);
-      const updatedEvents = reorderedEvents.map((event, index) => ({
-        ...event,
-        count: index + 1, // Update event counts for reorder
-      }));
+      const reorderedEvents = arrayMove(dateEvents, oldIndex, newIndex).map(
+        (event, index) => ({
+          ...event,
+          count: index + 1,
+        })
+      );
 
-      // Update the global state with the reordered events
-      setState((prev) => ({
-        ...prev,
-        events: [
-          ...prev.events.filter((e) => e.date !== activeEvent.date),
-          ...updatedEvents,
-        ],
-      }));
+      setState((prev) => {
+        const newEvents = {
+          ...prev,
+          events: [
+            ...prev.events.filter((e) => e.date !== activeEvent.date),
+            ...reorderedEvents,
+          ],
+        };
+        setNewEvents(newEvents.events);
+        return newEvents;
+      });
     }
   };
 
@@ -201,7 +204,11 @@ const Calendar: React.FC = () => {
 
         {calendarDays.map((date) => (
           <div key={date.toISOString()}>
-            <Cell isCurrentMonth={date.month() === currentMonth} date={date} />
+            <Cell
+              isCurrentMonth={date.month() === currentMonth}
+              date={date}
+              dragType={dragType}
+            />
             {/* Render each calendar cell, passing whether it's the current month */}
           </div>
         ))}
@@ -251,15 +258,4 @@ const DayHeader = styled.div`
   text-align: center;
   font-weight: bold;
   line-height: 3;
-`;
-
-const Wrapper = styled.div`
-  display: flex;
-  transform: scale(1.05);
-  transition: transform 0.2s ease;
-  background: white;
-  padding: 8px;
-  border-radius: 4px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  cursor: grabbing;
 `;

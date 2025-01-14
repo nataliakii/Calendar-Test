@@ -1,17 +1,23 @@
 import * as React from "react";
-import "./App.css";
 import styled from "styled-components";
+
 import { AppProvider } from "./Context";
 import Calendar from "./components/Calendar";
-// import Calendar from "./components/newCalendar";
+import SearchInput from "./components/Search/SearchInput";
+import DeleteAllButton from "./components/DeleteAllButton";
 
 const App: React.FC = () => {
   return (
     <AppProvider>
-      <div className="App">
-        <Header>Header</Header>
+      <AppContainer>
+        <Header>
+          <CenteredContainer>
+            <SearchInput />
+          </CenteredContainer>
+          <DeleteAllButton />
+        </Header>
         <Calendar />
-      </div>
+      </AppContainer>
     </AppProvider>
   );
 };
@@ -23,9 +29,9 @@ const Header = styled.header`
   background-color: #282c34;
   min-height: 7vh;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
+  position: relative;
   padding: 0 1rem;
   font-size: calc(10px + 2vmin);
   color: white;
@@ -35,5 +41,22 @@ const Header = styled.header`
   @media (max-width: 768px) {
     min-height: 10vh;
     font-size: calc(8px + 1.5vmin);
+  }
+`;
+
+const CenteredContainer = styled.div`
+  display: flex;
+  justify-content: center;
+`;
+
+const AppContainer = styled.div`
+  text-align: center;
+  a {
+    color: #61dafb;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
   }
 `;

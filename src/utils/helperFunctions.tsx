@@ -14,7 +14,7 @@ interface RawHoliday {
 }
 
 interface TransformedHoliday {
-  id: string; // A unique identifier (ISO date string).
+  id: string;
   title: string;
   date: string;
   description: string;
@@ -33,24 +33,20 @@ export function transformHolidaysData(
   });
 }
 
-export function filterEventsByDate<T extends boolean>(
+export function filterHolidaysByDate<T>(
   date: dayjs.Dayjs,
-  state: AppState,
-  isEvent: T = true as T
-): T extends true ? Event[] : Holiday[] {
+  state: AppState
+): Holiday[] {
   // Format the given date as 'YYYY-MM-DD'
   const isoDate = date.format("YYYY-MM-DD");
 
-  const eventType: Holiday[] | Event[] = isEvent
-    ? state.events
-    : state.holidays;
-
   // Filter events where the date matches the formatted input date
-  const events = eventType.filter((e) => e.date === isoDate);
+  const holidays = state.holidays.filter((e) => e.date === isoDate);
 
-  return events as T extends true ? Event[] : Holiday[];
+  return holidays;
 }
 
+// creates calendar days for the current page including days from prev month and next month is they are within the current weeks
 export const getCalendarDays = (year: number, month: number): dayjs.Dayjs[] => {
   const startOfCurrentMonth = dayjs(new Date(year, month)).startOf("month");
   const endOfCurrentMonth = startOfCurrentMonth.endOf("month");
@@ -66,4 +62,9 @@ export const getCalendarDays = (year: number, month: number): dayjs.Dayjs[] => {
     currentDay = currentDay.add(1, "day");
   }
   return days;
+};
+
+export const generateUniqueId = (): string => {
+  const randomString = Math.random().toString(36).substring(2, 10); // Generate a random string
+  return `${randomString}`;
 };

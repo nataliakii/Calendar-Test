@@ -1,14 +1,17 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { transformHolidaysData } from "./utils/helperFunctions";
-import { Event, Holiday, AppState, EventsManager } from "./types/types";
+import { Event, Holiday, AppState } from "./types/types";
 import stateManager from "./data/data";
 
 interface AppContextType {
   state: AppState;
   setState: React.Dispatch<React.SetStateAction<AppState>>;
-  eventsManager: EventsManager;
+  addEvent: (newEvent: Event) => void;
+  updateEvent: (id: string, updatedTitle: string) => void;
+  deleteEvent: (id: string) => void;
+  setNewEvents: (newEvents: Event[]) => void;
+  deleteAll: () => void;
 }
-
 // Create the context with a default undefined value
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
@@ -30,7 +33,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         );
         const rawData = await response.json();
         const data: Holiday[] = transformHolidaysData(rawData);
-        console.log(data);
         setState((prevState) => ({
           events: eventsManager.get(),
           holidays: data,
@@ -39,12 +41,51 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         console.error("Error fetching data:", error);
       }
     };
+    // const fetchEvents = () => {
+    //   setNewEvents(eventsManager.get());
+    // };
 
     fetchHolidays();
+    // fetchEvents();
   }, []);
 
+  const addEvent = (newEvent: Event) => {
+    const updatedEvents = eventsManager.add(newEvent);
+    setState((prev) => ({ ...prev, events: updatedEvents }));
+  };
+
+  const updateEvent = (id: string, updatedTitle: string) => {
+    const updatedEvents = eventsManager.update(id, updatedTitle);
+    setState((prev) => ({ ...prev, events: updatedEvents }));
+  };
+
+  const deleteEvent = (id: string) => {
+    const updatedEvents = eventsManager.delete(id);
+    setState((prev) => ({ ...prev, events: updatedEvents }));
+  };
+
+  const setNewEvents = (newEvents: Event[]) => {
+    const updatedEvents = eventsManager.setNewEvents(newEvents);
+    setState((prev) => ({ ...prev, events: updatedEvents }));
+  };
+
+  const deleteAll = () => {
+    eventsManager.deleteAll();
+    setState((prev) => ({ ...prev, events: [] }));
+  };
+
   return (
-    <AppContext.Provider value={{ state, setState, eventsManager }}>
+    <AppContext.Provider
+      value={{
+        state,
+        setState,
+        addEvent,
+        deleteEvent,
+        setNewEvents,
+        updateEvent,
+        deleteAll,
+      }}
+    >
       {children}
     </AppContext.Provider>
   );

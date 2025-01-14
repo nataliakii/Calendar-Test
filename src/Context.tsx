@@ -28,19 +28,33 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   useEffect(() => {
     const fetchHolidays = async () => {
       try {
-        const response = await fetch(
-          "https://date.nager.at/api/v3/NextPublicHolidays/UA"
-        );
-        const rawData = await response.json();
-        const data: Holiday[] = transformHolidaysData(rawData);
+        // Fetch holidays for both USA Ukraine UK concurrently
+        const [usaResponse, uaResponse] = await Promise.all([
+          fetch("https://date.nager.at/api/v3/NextPublicHolidays/US"),
+          fetch("https://date.nager.at/api/v3/NextPublicHolidays/UA"),
+        ]);
+
+        // Parse the responses
+        const usaRawData = await usaResponse.json();
+        const uaRawData = await uaResponse.json();
+
+        // Transform the data
+        const usaHolidays: Holiday[] = transformHolidaysData(usaRawData);
+        const uaHolidays: Holiday[] = transformHolidaysData(uaRawData);
+
+        // Combine the holidays from both countries
+        const combinedHolidays = [...usaHolidays, ...uaHolidays];
+
+        // Update the state with events and combined holidays
         setState((prevState) => ({
           events: eventsManager.get(),
-          holidays: data,
+          holidays: combinedHolidays,
         }));
       } catch (error) {
-        console.error("Error fetching data:", error);
+        console.error("Error fetching holidays:", error);
       }
     };
+
     // const fetchEvents = () => {
     //   setNewEvents(eventsManager.get());
     // };

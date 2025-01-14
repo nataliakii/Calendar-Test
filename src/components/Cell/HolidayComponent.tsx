@@ -3,11 +3,11 @@ import styled from "styled-components";
 
 import { Holiday } from "../../types/types";
 
-interface SliderProps {
+interface HolidayComponentProps {
   holidays: Holiday[];
 }
 
-const HolidayComponent: React.FC<SliderProps> = ({
+const HolidayComponent: React.FC<HolidayComponentProps> = ({
   holidays,
 }): ReactElement | null => {
   if (!holidays || holidays.length === 0) return null;

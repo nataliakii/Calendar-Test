@@ -1,11 +1,10 @@
-import React, { ReactElement, useState } from "react";
+import React, { ReactElement } from "react";
 import styled from "styled-components";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import dayjs from "dayjs";
 
 import { Event } from "../../types/types";
-import { useAppContext } from "../../Context";
 
 interface SortableItemProps {
   event: Event;
@@ -29,16 +28,6 @@ const SortableItem: React.FC<SortableItemProps> = ({
   isEditing,
   dragType,
 }): ReactElement => {
-  const { state, deleteEvent } = useAppContext();
-  const [isDeleting, setIsDeleting] = useState(false);
-
-  const handleDelete = () => {
-    console.log("Delete button clicked");
-    setIsDeleting(true); // Temporarily disable sorting
-    deleteEvent(event.id);
-    setIsDeleting(false); // Re-enable sorting
-  };
-
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({
       id: event.id,

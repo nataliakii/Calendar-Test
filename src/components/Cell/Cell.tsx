@@ -98,7 +98,7 @@ const HolidayWrapper = styled.div`
 const TopWrapper = styled.div<{ hasHolidays: boolean }>`
   display: flex;
   justify-content: space-evenly;
-  background-color: ${({ hasHolidays }) => (hasHolidays ? "yellow" : "white")};
+  background-color: ${({ hasHolidays }) => (hasHolidays ? "#FFEEA9" : "white")};
   padding: ${({ hasHolidays }) => (hasHolidays ? " 8px" : "0")};
   border-radius: ${({ hasHolidays }) => (hasHolidays ? " 4px" : "0")};
   font-weight: bold;

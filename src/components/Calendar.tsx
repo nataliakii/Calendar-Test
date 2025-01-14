@@ -1,4 +1,4 @@
-import React, { createContext, useState, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 
 // library imports
 import {
@@ -25,7 +25,7 @@ import DraggingEventOverlay from "./DraggingEventOverlay";
 
 const Calendar: React.FC = () => {
   // Accessing global state and updater function from the context
-  const { state, setState, setNewEvents, deleteAll } = useAppContext();
+  const { state, setState, setNewEvents } = useAppContext();
 
   // Getting the current date using dayjs
   const today = dayjs();
